@@ -41,7 +41,7 @@ class DataLoader(object):
         dataset = tf.data.Dataset.from_tensor_slices(tf_fns) 
         dataset = dataset.shuffle(len(filenames))
         dataset = dataset.apply(
-            tf.contrib.data.map_and_batch(
+            tf.data.experimental.map_and_batch(
                 lambda filenames: tf.py_func(
                     func=read_image, 
                     inp=[filenames, 
