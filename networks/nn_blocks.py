@@ -22,9 +22,9 @@ def self_attn_block(inp, nc, squeeze_factor=8):
     x = inp
     shape_x = x.get_shape().as_list()
     
-    f = Conv2D(nc//squeeze_factor, 1, kernel_regularizer=regularizers.l2(w_l2))(x)
-    g = Conv2D(nc//squeeze_factor, 1, kernel_regularizer=regularizers.l2(w_l2))(x)
-    h = Conv2D(nc, 1, kernel_regularizer=regularizers.l2(w_l2))(x)
+    f = Conv2D(nc//squeeze_factor, 1, kernel_regularizer=tf.keras.regularizers.l2(w_l2))(x)
+    g = Conv2D(nc//squeeze_factor, 1, kernel_regularizer=tf.keras.regularizers.l2(w_l2))(x)
+    h = Conv2D(nc, 1, kernel_regularizer=tf.keras.regularizers.l2(w_l2))(x)
     
     shape_f = f.get_shape().as_list()
     shape_g = g.get_shape().as_list()
@@ -52,13 +52,13 @@ def dual_attn_block(inp, nc, squeeze_factor=8):
     shape_x = x.get_shape().as_list()
     
     # position attention module
-    x_pam = Conv2D(nc, kernel_size=3, kernel_regularizer=regularizers.l2(w_l2),  
+    x_pam = Conv2D(nc, kernel_size=3, kernel_regularizer=tf.keras.regularizers.l2(w_l2),  
                kernel_initializer=conv_init, use_bias=False, padding="same")(x)
     x_pam = Activation("relu")(x_pam)
     x_pam = normalization(x_pam, norm, nc)
-    f_pam = Conv2D(nc//squeeze_factor, 1, kernel_regularizer=regularizers.l2(w_l2))(x_pam)
-    g_pam = Conv2D(nc//squeeze_factor, 1, kernel_regularizer=regularizers.l2(w_l2))(x_pam)
-    h_pam = Conv2D(nc, 1, kernel_regularizer=regularizers.l2(w_l2))(x_pam)    
+    f_pam = Conv2D(nc//squeeze_factor, 1, kernel_regularizer=tf.keras.regularizers.l2(w_l2))(x_pam)
+    g_pam = Conv2D(nc//squeeze_factor, 1, kernel_regularizer=tf.keras.regularizers.l2(w_l2))(x_pam)
+    h_pam = Conv2D(nc, 1, kernel_regularizer=tf.keras.regularizers.l2(w_l2))(x_pam)    
     shape_f_pam = f_pam.get_shape().as_list()
     shape_g_pam = g_pam.get_shape().as_list()
     shape_h_pam = h_pam.get_shape().as_list()
@@ -71,13 +71,13 @@ def dual_attn_block(inp, nc, squeeze_factor=8):
     o_pam = Reshape(shape_x[1:])(o_pam)
     o_pam = Scale()(o_pam)    
     out_pam = add([o_pam, x_pam])
-    out_pam = Conv2D(nc, kernel_size=3, kernel_regularizer=regularizers.l2(w_l2),  
+    out_pam = Conv2D(nc, kernel_size=3, kernel_regularizer=tf.keras.regularizers.l2(w_l2),  
                kernel_initializer=conv_init, use_bias=False, padding="same")(out_pam)
     out_pam = Activation("relu")(out_pam)
     out_pam = normalization(out_pam, norm, nc)
     
     # channel attention module
-    x_chn = Conv2D(nc, kernel_size=3, kernel_regularizer=regularizers.l2(w_l2),  
+    x_chn = Conv2D(nc, kernel_size=3, kernel_regularizer=tf.keras.regularizers.l2(w_l2),  
                kernel_initializer=conv_init, use_bias=False, padding="same")(x)
     x_chn = Activation("relu")(x_chn)
     x_chn = normalization(x_chn, norm, nc)
@@ -93,7 +93,7 @@ def dual_attn_block(inp, nc, squeeze_factor=8):
     o_chn = Reshape(shape_x[1:])(o_chn)
     o_chn = Scale()(o_chn)    
     out_chn = add([o_chn, x_chn])
-    out_chn = Conv2D(nc, kernel_size=3, kernel_regularizer=regularizers.l2(w_l2),  
+    out_chn = Conv2D(nc, kernel_size=3, kernel_regularizer=tf.keras.regularizers.l2(w_l2),  
                kernel_initializer=conv_init, use_bias=False, padding="same")(out_chn)
     out_chn = Activation("relu")(out_chn)
     out_chn = normalization(out_chn, norm, nc)
@@ -117,7 +117,7 @@ def normalization(inp, norm='none', group='16'):
         f = group
         x0 = Lambda(lambda x: x[...,:f//2])(x)
         x1 = Lambda(lambda x: x[...,f//2:])(x)        
-        x0 = Conv2D(f//2, kernel_size=1, kernel_regularizer=regularizers.l2(w_l2),
+        x0 = Conv2D(f//2, kernel_size=1, kernel_regularizer=tf.keras.regularizers.l2(w_l2),
                     kernel_initializer=conv_init)(x0)
         x1 = InstanceNormalization()(x1)        
         x = concatenate([x0, x1], axis=-1)
@@ -127,7 +127,7 @@ def normalization(inp, norm='none', group='16'):
 
 def conv_block(input_tensor, f, use_norm=False, strides=2, w_l2=w_l2, norm='none'):
     x = input_tensor
-    x = Conv2D(f, kernel_size=3, strides=strides, kernel_regularizer=regularizers.l2(w_l2),  
+    x = Conv2D(f, kernel_size=3, strides=strides, kernel_regularizer=tf.keras.regularizers.l2(w_l2),  
                kernel_initializer=conv_init, use_bias=False, padding="same")(x)
     x = Activation("relu")(x)
     x = normalization(x, norm, f) if use_norm else x
@@ -135,7 +135,7 @@ def conv_block(input_tensor, f, use_norm=False, strides=2, w_l2=w_l2, norm='none
 
 def conv_block_d(input_tensor, f, use_norm=False, w_l2=w_l2, norm='none'):
     x = input_tensor
-    x = Conv2D(f, kernel_size=4, strides=2, kernel_regularizer=regularizers.l2(w_l2), 
+    x = Conv2D(f, kernel_size=4, strides=2, kernel_regularizer=tf.keras.regularizers.l2(w_l2), 
                kernel_initializer=conv_init, use_bias=False, padding="same")(x)
     x = LeakyReLU(alpha=0.2)(x)   
     x = normalization(x, norm, f) if use_norm else x
@@ -143,11 +143,11 @@ def conv_block_d(input_tensor, f, use_norm=False, w_l2=w_l2, norm='none'):
 
 def res_block(input_tensor, f, use_norm=False, w_l2=w_l2, norm='none'):
     x = input_tensor
-    x = Conv2D(f, kernel_size=3, kernel_regularizer=regularizers.l2(w_l2), 
+    x = Conv2D(f, kernel_size=3, kernel_regularizer=tf.keras.regularizers.l2(w_l2), 
                kernel_initializer=conv_init, use_bias=False, padding="same")(x)
     x = LeakyReLU(alpha=0.2)(x)
     x = normalization(x, norm, f) if use_norm else x
-    x = Conv2D(f, kernel_size=3, kernel_regularizer=regularizers.l2(w_l2), 
+    x = Conv2D(f, kernel_size=3, kernel_regularizer=tf.keras.regularizers.l2(w_l2), 
                kernel_initializer=conv_init, use_bias=False, padding="same")(x)
     x = add([x, input_tensor])
     x = LeakyReLU(alpha=0.2)(x)
@@ -170,12 +170,12 @@ def SPADE_res_block(input_tensor, cond_input_tensor, f, use_norm=True, norm='non
         x = input_tensor
         x = normalization(x, norm, f) if use_norm else x
         y = cond_input_tensor
-        y = Conv2D(128, kernel_size=3, kernel_regularizer=regularizers.l2(w_l2), 
+        y = Conv2D(128, kernel_size=3, kernel_regularizer=tf.keras.regularizers.l2(w_l2), 
                    kernel_initializer=conv_init, padding='same')(y)
         y = Activation('relu')(y)           
-        gamma = Conv2D(f, kernel_size=3, kernel_regularizer=regularizers.l2(w_l2), 
+        gamma = Conv2D(f, kernel_size=3, kernel_regularizer=tf.keras.regularizers.l2(w_l2), 
                    kernel_initializer=conv_init, padding='same')(y)
-        beta = Conv2D(f, kernel_size=3, kernel_regularizer=regularizers.l2(w_l2), 
+        beta = Conv2D(f, kernel_size=3, kernel_regularizer=tf.keras.regularizers.l2(w_l2), 
                    kernel_initializer=conv_init, padding='same')(y)
         x = add([x, multiply([x, gamma])])
         x = add([x, beta])
@@ -185,12 +185,12 @@ def SPADE_res_block(input_tensor, cond_input_tensor, f, use_norm=True, norm='non
     x = SPADE(x, cond_input_tensor, f, use_norm, norm)
     x = Activation('relu')(x)
     x = ReflectPadding2D(x)
-    x = Conv2D(f, kernel_size=3, kernel_regularizer=regularizers.l2(w_l2), 
+    x = Conv2D(f, kernel_size=3, kernel_regularizer=tf.keras.regularizers.l2(w_l2), 
                kernel_initializer=conv_init, use_bias=not use_norm)(x)
     x = SPADE(x, cond_input_tensor, f, use_norm, norm)
     x = Activation('relu')(x)
     x = ReflectPadding2D(x)
-    x = Conv2D(f, kernel_size=3, kernel_regularizer=regularizers.l2(w_l2), 
+    x = Conv2D(f, kernel_size=3, kernel_regularizer=tf.keras.regularizers.l2(w_l2), 
                kernel_initializer=conv_init)(x)
     x = add([x, input_tensor])
     x = Activation('relu')(x)
@@ -198,7 +198,7 @@ def SPADE_res_block(input_tensor, cond_input_tensor, f, use_norm=True, norm='non
 
 def upscale_ps(input_tensor, f, use_norm=False, w_l2=w_l2, norm='none'):
     x = input_tensor
-    x = Conv2D(f*4, kernel_size=3, kernel_regularizer=regularizers.l2(w_l2), 
+    x = Conv2D(f*4, kernel_size=3, kernel_regularizer=tf.keras.regularizers.l2(w_l2), 
                kernel_initializer=icnr_keras, padding='same')(x)
     x = LeakyReLU(0.2)(x)
     x = normalization(x, norm, f) if use_norm else x
@@ -213,7 +213,7 @@ def upscale_nn(input_tensor, f, use_norm=False, w_l2=w_l2, norm='none'):
     x = input_tensor
     x = UpSampling2D()(x)
     x = ReflectPadding2D(x, 1)
-    x = Conv2D(f, kernel_size=3, kernel_regularizer=regularizers.l2(w_l2), 
+    x = Conv2D(f, kernel_size=3, kernel_regularizer=tf.keras.regularizers.l2(w_l2), 
                kernel_initializer=conv_init)(x)
     x = normalization(x, norm, f) if use_norm else x
     return x
